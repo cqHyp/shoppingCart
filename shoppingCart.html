@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>购物车</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+  <script src="https://cdn.bootcss.com/jquery/1.10.2/jquery.min.js"></script>
+  <script>
+    //计算根节点HTML的字体大小
+    function resizeRoot() {
+      var deviceWidth = document.documentElement.clientWidth,
+        num = 750,
+        num1 = num / 100;
+      if (deviceWidth > num) {
+        deviceWidth = num;
+      }
+      document.documentElement.style.fontSize = deviceWidth / num1 + "px";
+    }
+
+    //根节点HTML的字体大小初始化
+    resizeRoot();
+
+    window.onresize = function () {
+      resizeRoot();
+    };
+  </script>
+</head>
+<body>
+<div id="shoppingCart">
+  <!-- 全选头 -->
+  <div class="top-wrapper">
+    <div class="radio-item">
+      <input type="checkbox" id="ck" v-model="allChecked"/>
+      <label for="ck">
+        <div>果邦晟商城</div>
+      </label>
+    </div>
+    <div class="delete-icon-wrapper" @click="toClearGoodsList()">
+      <img class="delete-icon" src="http://cqhpoldi.com/icon/img/删除.png">
+    </div>
+  </div>
+  <!-- 购物车列表 -->
+  <div class="list">
+    <ul>
+      <li v-for="(item, index) in goodsList">
+        <p>
+          <span class="goods-item">
+            <input type="checkbox" :id='"goods-" + item.id' v-model="item.checked"/>
+            <label :for='"goods-" + item.id'></label>
+            <img class="goods-img" src="http://cqhpoldi.com/icon/img/2671530584986_.pic@2x.png"/>
+            <span class="goods-detail">
+              <span class="goods-name">【GBS】20瓶套餐</span>
+              <span class="goods-price">¥{{(item.price).toFixed(2)}}</span>
+              <span class="numberCount-wrapper">
+                <span class="numberCount-decrease" :class='item.count<=1?"count-disabled":""'
+                      @click.stop="toDecrease(item.id)">
+            <span>-</span>
+          </span>
+          <span class="numberCount-content">
+            {{item.count}}
+            <!--<input type="number" v-model="count"/>-->
+          </span>
+          <span class="numberCount-add" @click.stop="toIncrease(item.id)">
+            <span>+</span>
+          </span>
+              </span>
+            </span>
+          </span>
+          <i>删除</i>
+        </p>
+      </li>
+    </ul>
+  </div>
+  <!-- 结算 -->
+  <div class="bottom-wrapper">
+    <div class="bottom-left">
+      <div style="line-height: 34px;">
+        <input type="checkbox" id="ck" v-model="allChecked"/>
+        <label for="ck">
+          <div>全选</div>
+        </label>
+      </div>
+      <div class="bottom-left-price">
+        <div>总计：<span>￥{{totalPrice.toFixed(2)}}</span></div>
+        <div class="bottom-transfer-no-fee">不含配送费</div>
+      </div>
+    </div>
+    <div class="bottom-right">
+      去结算（{{goodsCount}}）
+    </div>
+  </div>
+</div>
+<script>
+  var shoppingCart = new Vue({
+    el: '#shoppingCart',
+    data: {
+      message: '123123',
+      allChecked: '',
+      count: 1,
+      goodsList: [
+        {
+          id: 1,
+          price: 88,
+          count: 1,
+          checked: false
+        },
+        {
+          id: 2,
+          price: 188,
+          count: 3,
+          checked: false
+        },
+        {
+          id: 3,
+          price: 288,
+          count: 4,
+          checked: false
+        }
+      ],
+      goodsCount: 0, // 选中数量
+      totalPrice: 0,// 总计
+    },
+    created: function () {
+
+    },
+    mounted: function () {
+
+    },
+    methods: {
+      toDecrease: function (id) {
+        // 商品数量 减
+        var count = this.goodsList.filter(function (item) {
+          return item.id == id;
+        })[0].count;
+        if (count <= 1) {
+          return;
+        } else {
+          this.goodsList.filter(function (item) {
+            return item.id == id;
+          })[0].count--;
+        }
+      },
+      toIncrease: function (id) {
+        // 商品数量 加
+        this.goodsList.filter(function (item) {
+          return item.id == id;
+        })[0].count++;
+      },
+      toDelete: function (item) {
+
+      },
+      toClearGoodsList: function () {
+        // 清空购物车
+        this.goodsList = [];
+      }
+    },
+    watch: {
+      allChecked: function () {
+        if (this.goodsList.length == 0) {
+          this.allChecked = false;
+        }
+        var checkedList = this.goodsList.filter(function (item) {
+          return item.checked == true;
+        });
+        console.log(checkedList);
+        if (checkedList.length <= 0) {
+          this.goodsList.forEach(function (item, index) {
+            item.checked = true;
+          })
+        } else {
+          if (this.allChecked == true) {
+            if (checkedList.length < this.goodsList.length) {
+              this.goodsList.forEach(function (item, index) {
+                item.checked = true;
+              })
+            } else if (checkedList.length === this.goodsList.length) {
+              this.goodsList.forEach(function (item, index) {
+                item.checked = true;
+              })
+            }
+          } else {
+            if (checkedList.length < this.goodsList.length) {
+
+            } else {
+              this.goodsList.forEach(function (item, index) {
+                item.checked = false;
+              })
+            }
+          }
+        }
+      },
+      goodsList: {
+        handler: function (newVal) {
+          // 监听选中
+          var checkedList = this.goodsList.filter(function (item) {
+            return item.checked == true;
+          });
+          this.goodsCount = checkedList.length;
+          var price = 0;
+          checkedList.forEach(function (item, index) {
+            price += item.count * item.price;
+          })
+          this.totalPrice = price;
+          if (this.allChecked == false) {
+            if (checkedList.length === this.goodsList.length) {
+              console.log(111);
+              this.allChecked = true;
+            }
+          } else {
+            if (checkedList.length < this.goodsList.length) {
+              this.allChecked = false;
+            }
+          }
+
+        },
+        deep: true
+      }
+    }
+  })
+</script>
+<script>
+  //侧滑显示删除按钮
+  let expansion = null; //是否存在展开的list
+  let container = document.querySelectorAll('.list li p');
+  for (var i = 0; i < container.length; i++) {
+    var x, y, X, Y, swipeX, swipeY;
+    container[i].addEventListener('touchstart', function (event) {
+      x = event.changedTouches[0].pageX;
+      y = event.changedTouches[0].pageY;
+      swipeX = true;
+      swipeY = true;
+      if (expansion) {   //判断是否展开，如果展开则收起
+        expansion.className = "";
+      }
+    });
+    container[i].addEventListener('touchmove', function (event) {
+      X = event.changedTouches[0].pageX;
+      Y = event.changedTouches[0].pageY;
+      // 左右滑动
+      if (swipeX && Math.abs(X - x) - Math.abs(Y - y) > 0) {
+        // 阻止事件冒泡
+        event.stopPropagation();
+        if (X - x > 10) {   //右滑
+          event.preventDefault();
+          this.className = "";    //右滑收起
+        }
+        if (x - X > 10) {   //左滑
+          event.preventDefault();
+          this.className = "swipeleft";   //左滑展开
+          expansion = this;
+        }
+        swipeY = false;
+      }
+      // 上下滑动
+      if (swipeY && Math.abs(X - x) - Math.abs(Y - y) < 0) {
+        swipeX = false;
+      }
+    });
+  }
+
+  var i = document.querySelectorAll('.list li i');
+  i.forEach(function (item, index) {
+    i[index].onclick = function () {
+      // 删除操作
+      shoppingCart.goodsList.splice(index, 1);
+    };
+  });
+</script>
+</body>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  #shoppingCart {
+    min-height: 100vh;
+    background: #F1F1F1;
+    font-size: 14px;
+  }
+
+  .list li {
+    list-style: none;
+    font-size: 14px;
+  }
+
+  .list i {
+    font-style: normal;
+    line-height: 132px;
+  }
+
+  .list a {
+    color: #393939;
+    text-decoration: none;
+  }
+
+  .list {
+    overflow: hidden;
+    padding-bottom: 70px;
+  }
+
+  .list ul {
+    padding: 0;
+    margin: 0;
+  }
+
+  .list li {
+    width: 130%;
+    margin-bottom: 1px;
+    /*border-bottom: 1px solid #ddd;*/
+  }
+
+  .list li p {
+    overflow: hidden;
+    height: 132px;
+    margin: 0;
+    -webkit-transition: all 0.3s linear;
+    transition: all 0.3s linear;
+  }
+
+  .list li a {
+    display: inline-block;
+    width: 90%;
+  }
+
+  .list li i {
+    float: right;
+    width: 20%;
+    text-align: center;
+    background: #FD1C48;
+    color: #fff;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  }
+
+  .swipeleft {
+    transform: translateX(-20%);
+    -webkit-transform: translateX(-20%);
+  }
+
+  .top-wrapper {
+    padding: 15px 15px 14px 16px;
+    background: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2px;
+  }
+
+  .delete-icon-wrapper {
+    margin: auto 0;
+    display: flex;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  }
+
+  .delete-icon {
+    width: 16px;
+    height: 16px;
+    margin: auto 0;
+  }
+
+  .radio-item {
+    height: 20px;
+  }
+
+  .radio-item input, .goods-item input {
+    display: none;
+  }
+
+  label {
+    color: #333333;
+    font-size: 14px;
+    display: inline-flex;
+    position: relative;
+    box-sizing: border-box;
+    padding: 0;
+    vertical-align: super;
+    border-radius: 0;
+    background-color: white;
+    cursor: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  }
+
+  label:before {
+    content: "";
+    width: 18px;
+    height: 18px;
+    border: none;
+    display: block;
+    text-align: center;
+    position: relative;
+    bottom: 0;
+    left: 0;
+    margin: auto 13px auto 0;
+    background-image: url("http://cqhpoldi.com/icon/img/icon_checkBox_unchecked.png");
+    background-size: 18px 18px;
+    background-repeat: no-repeat;
+    background-position: center;
+    border-radius: 0;
+    -webkit-transform: none;
+    -webkit-transition: none;
+  }
+
+  input[type="checkbox"]:checked + label::before {
+    /*color: #ffffff;*/
+    content: '';
+    border: none;
+    display: block;
+    width: 18px;
+    height: 18px;
+    background-image: url("http://cqhpoldi.com/icon/img/icon_checkBox_checked.png");
+    background-size: 18px 18px;
+    background-repeat: no-repeat;
+    background-position: center;
+    text-align: center;
+    position: relative;
+    margin: auto 13px auto 0;
+    border-radius: 0;
+    background-color: white;
+    box-shadow: none;
+    -webkit-transform: translateX(0px);
+    -webkit-transition: none;
+  }
+
+  input[type="checkbox"]:disabled + label::before {
+    /*color: #ffffff;*/
+    content: '';
+    border: none;
+    display: block;
+    width: 18px;
+    height: 18px;
+    background-image: url("http://cqhpoldi.com/icon/img/icon_checkBox_checked_disabled.png");
+    background-size: 18px 18px;
+    background-repeat: no-repeat;
+    background-position: center;
+    text-align: center;
+    position: relative;
+    margin: auto 13px auto 0;
+    border-radius: 0;
+    background-color: white;
+    box-shadow: none;
+    -webkit-transform: translateX(0px);
+    -webkit-transition: none;
+  }
+
+  .goods-item {
+    display: inline-flex;
+    background: #ffffff;
+    width: 80%;
+    height: 100%;
+  }
+
+  .goods-img {
+    width: 82px;
+    height: 82px;
+    min-height: 82px;
+    min-width: 82px;
+    margin: 22px 17px 28px 16px;
+  }
+
+  .goods-item label:before, .goods-item input[type="checkbox"]:checked + label::before, .goods-item input[type="checkbox"]:disabled + label::before {
+    margin: auto 0 auto 16px;
+  }
+
+  .goods-detail {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+    margin: 24px 0 27px;
+    padding-right: 10%;
+  }
+
+  .numberCount-wrapper {
+    display: inline-flex;
+    justify-content: flex-end;
+  }
+
+  .numberCount-wrapper input {
+    height: 24px;
+    width: 44px;
+    border: 1px solid #999999;
+    text-align: center;
+    color: #333333;
+    padding: 0;
+    font-size: 14px;
+  }
+
+  .numberCount-add, .numberCount-decrease {
+    height: 24px;
+    width: 26px;
+    border: 1px solid #999999;
+    font-weight: 200;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    color: #666666;
+    line-height: 24px;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  }
+
+  .numberCount-add div, .numberCount-decrease div {
+    display: block;
+    margin: auto;
+  }
+
+  .numberCount-decrease {
+    border-right: none;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+  }
+
+  .numberCount-add {
+    border-left: none;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+  }
+
+  .count-disabled {
+    border: 1px solid #CCCCCC;
+    color: #999999;
+    border-right: none;
+  }
+
+  .numberCount-content {
+    line-height: 24px;
+    width: 42px;
+    color: black;
+    display: inline-flex;
+    justify-content: center;
+    border: 1px solid #999999;
+  }
+
+  .numberCount-content input {
+    border: 1px solid #999999;
+    border-radius: 0;
+    /*width: 20px;*/
+  }
+
+  .goods-name {
+    font-size: 14px;
+    color: #333333;
+  }
+
+  .goods-price {
+    color: #FD1C48;
+  }
+
+  .bottom-wrapper {
+    height: 50px;
+    width: 100%;
+    background: #ffffff;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .bottom-wrapper input {
+    display: none;
+  }
+
+  .bottom-left {
+    padding: 8px 13px 8px 15px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    flex: 1;
+  }
+
+  .bottom-left label > div {
+    font-size: 12px;
+    color: #666666;
+  }
+
+  .bottom-right {
+    background: #FD1C48;
+    font-size: 16px;
+    color: #ffffff;
+    width: 140px;
+    font-weight: 400;
+    text-align: center;
+    line-height: 50px;
+    padding-left: 20px;
+    box-sizing: border-box;
+  }
+
+  .bottom-left-price {
+    font-size: 13px;
+    color: #333333;
+  }
+
+  .bottom-left-price span {
+    color: #FF0040;
+  }
+
+  .bottom-left-price > div {
+    text-align: right;
+  }
+
+  .bottom-transfer-no-fee {
+    color: #9C9C9C;
+    font-size: 10px;
+  }
+</style>
+</html>
